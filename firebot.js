@@ -41,8 +41,12 @@ var Firebot = {
     this.is_active = false;
   },
 
-  resume: function() {
-    this.setUpBot();
+  restart: function() {
+    if (!this.is_active) {
+      this.setUpBot();
+    } else {
+      console.log('Firebot is already active');
+    }
   },
 
   attachEventListeners: function() {
