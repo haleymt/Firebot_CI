@@ -14,7 +14,7 @@ var Firebot = {
   deadChannels: [],
   dailyActiveChannels: [],
   recentActiveChannels: [],
-  memberChannels = [],
+  memberChannels: [],
   hourlyActivity: {},
   is_active: false,
 
@@ -73,7 +73,7 @@ var Firebot = {
     }.bind(this));
 
     controller.on('bot_channel_join', function(bot, res) {
-      var bot_id = bot.config.bot.user_id;
+      var bot_id = bot.identity.id;
       if (res.user === bot_id) {
         this.memberChannels.push(res.channel);
       }
@@ -95,9 +95,9 @@ var Firebot = {
       var question = message.match[1];
       var type;
 
-      if (question === ' are dead') {
+      if (question === ' are dead' || question === ' are dead?') {
         type = 'dead';
-      } else if (question === ' are active') {
+      } else if (question === ' are active' || question === ' are active') {
         type = 'daily';
       }
 
@@ -117,7 +117,7 @@ var Firebot = {
             }
             bot.reply(message, text);
           }
-        });
+        }.bind(this));
       }
     }.bind(this));
 
@@ -172,7 +172,7 @@ var Firebot = {
         if (payload.channels) {
           payload.channels.forEach(function(channel) {
             if (!channel.is_archived) {
-              var bot_id = bot.config.bot.user_id;
+              var bot_id = bot.identity.id;
               this.allChannels.push(channel);
               if (channel.members && channel.members.indexOf(bot_id) > -1 && this.memberChannels.indexOf(channel.id) < 0) {
                 this.memberChannels.push(channel.id);
@@ -237,12 +237,12 @@ var Firebot = {
               var value = this.hourlyActivity[key];
               this.hourlyActivity[key] = value && value < 5 ? value + 1 : 0;
             }
-          });
+          }.bind(this));
 
           if (filteredChannels.length) {
             var text = this.formatBotText(filteredChannels, "lit");
             for (var c in this.memberChannels) {
-              bot.send({ text, channel: this.memberChannels[c] });
+              this.bot.send({ text, channel: this.memberChannels[c] });
             }
           }
         }
@@ -308,10 +308,10 @@ var Firebot = {
             loopArray(arr);
           }
         });
-      };
+      }.bind(this);
 
       if (channels) {
-        loopArray(channels).bind(this);
+        loopArray(channels);
       }
     }.bind(this));
   },
