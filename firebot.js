@@ -151,6 +151,25 @@ var Firebot = {
         }
       }
     }.bind(this));
+
+    controller.on('team_join', function(bot, res) {
+      if (res) {
+        this.allUsers.push(res.user);
+      }
+    }.bind(this));
+
+    controller.on('user_change', function(bot, res) {
+      if (res) {
+        var user = res.user;
+        if (user.deleted) {
+          for (var u in bot.allUsers) {
+            if (bot.allUsers[u].id === user.id) {
+              bot.allUsers.splice(u, 1);
+            }
+          }
+        }
+      }
+    }.bind(this));
   },
 
   attachConversationListeners: function() {
@@ -176,9 +195,9 @@ var Firebot = {
           }
 
           if (isComplete) {
-            var text = emptyListText;
+            var text = this.formatMessage(emptyListText);
             if (this[channelList].length) {
-              text = this.formatBotText(this[channelList], type);
+              text = this.formatMessage(this[channelList], type);
             }
             bot.reply(message, text);
           }
@@ -187,12 +206,12 @@ var Firebot = {
     }.bind(this));
 
     controller.hears(['who is lit'], 'ambient,direct_message,direct_mention,mention', function(bot, message) {
-      bot.reply(message, 'firebot is pretty lit');
-    });
+      bot.reply(message, this.formatMessage('firebot is pretty lit'));
+    }.bind(this));
 
     controller.hears(['am i lit'], 'ambient,direct_message,direct_mention,mention', function(bot, message) {
-      bot.reply(message, 'nope');
-    });
+      bot.reply(message, this.formatMessage('nope'));
+    }.bind(this));
 
     controller.hears(['is (.*) lit', 'are (.*) lit'], 'ambient,direct_message,direct_mention,mention', function(bot, message) {
       var channel = message.match[1];
@@ -226,7 +245,7 @@ var Firebot = {
           text = channel === 'yep';
         }
 
-        bot.reply(message, text);
+        bot.reply(message, this.formatMessage(text));
       }
     }.bind(this));
   },
@@ -305,9 +324,10 @@ var Firebot = {
           }.bind(this));
 
           if (filteredChannels.length) {
-            var text = this.formatBotText(filteredChannels, "lit");
+            var text = this.formatMessage(filteredChannels, "lit");
             for (var c in this.memberChannels) {
-              this.bot.send({ text, channel: this.memberChannels[c] });
+              text = Object.assign(text, { channel: this.memberChannels[c] });
+              this.bot.send(text);
             }
           }
         }
@@ -402,10 +422,17 @@ var Firebot = {
     return messageCount > minimum && users.length > 1;
   },
 
-  formatMessage: function(text) {
+  formatMessage: function(channelList, type) {
+    /* use this to force the appearance of the bot */
+    var text;
+    if (typeof channelList === 'string') {
+      text = channelList
+    } else {
+      text = formatBotText(channelList, type);
+    }
     return {
       text,
-      username: 'firebot_nametest',
+      username: 'firebot',
       icon_emoji: ':fire:'
     };
   },
