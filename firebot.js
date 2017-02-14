@@ -181,7 +181,7 @@ var Firebot = {
 
       if (question === ' are dead' || question === ' are dead?') {
         type = 'dead';
-      } else if (question === ' are active' || question === ' are active') {
+      } else if (question === ' are active' || question === ' are active?') {
         type = 'daily';
       }
 
